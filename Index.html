@@ -2,69 +2,10 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>TON Connect 2.0 Debug</title>
+    <title>TON Connect Debug</title>
 
-    <!-- Новий TON Connect UI -->
-    <script type="module">
-        import { TonConnectUI } from "https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js";
-
-        window.addEventListener("DOMContentLoaded", async () => {
-
-            const log = (msg) => {
-                const el = document.getElementById("log");
-                el.textContent += msg + "\n";
-                el.scrollTop = el.scrollHeight;
-                console.log(msg);
-            };
-
-            log("Стартуємо...");
-
-            const manifest = "https://inoandi11-lang.github.io/Connect/tonconnect-manifest.json";
-
-            log("Manifest URL: " + manifest);
-
-            // === Ініціалізація нового UI ===
-            const tonConnectUI = new TonConnectUI({
-                manifestUrl: manifest,
-                buttonRootId: "connect"   // <---- новий спосіб відображення кнопки
-            });
-
-            log("TonConnectUI створено");
-
-            // Слухаємо підключення
-            tonConnectUI.onStatusChange((wallet) => {
-                log("СТАТУС: " + JSON.stringify(wallet));
-            });
-
-            // Обробка транзакції
-            document.getElementById("pay").onclick = async () => {
-                log("Натиснуто 'Поповнити'");
-
-                const address = "UQA1K3BubP0cSlMxZ-dVG1L-h3sNl90Rha2zdVS4LQLVU271";
-                const memo = "7659832051";
-
-                const tx = {
-                    validUntil: Math.floor(Date.now() / 1000) + 300,
-                    messages: [
-                        {
-                            address: address,
-                            amount: (1 * 1e9).toString(),
-                            payload: TonConnectUI.createCommentMessage(memo)
-                        }
-                    ]
-                };
-
-                try {
-                    log("Відправляємо TX...");
-                    await tonConnectUI.sendTransaction(tx);
-                    log("Транзакція відправлена!");
-                } catch (e) {
-                    log("ПОМИЛКА ТРАНЗАКЦІЇ: " + e);
-                }
-            };
-
-        });
-    </script>
+    <!-- ПРАВИЛЬНЕ підключення TON CONNECT UI -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest"></script>
 
     <style>
         body { font-family: Arial; padding: 20px; }
@@ -92,13 +33,67 @@
 
 <h2>TON Connect</h2>
 
-<!-- Тут TON Connect сам вставить кнопку -->
 <div id="connect"></div>
 
 <button id="pay">Поповнити 1 TON</button>
 
 <h3>Логи:</h3>
 <div id="log"></div>
+
+<script>
+function log(msg) {
+    const el = document.getElementById("log");
+    el.textContent += msg + "\n";
+    el.scrollTop = el.scrollHeight;
+    console.log(msg);
+}
+
+log("JS запустився ✔");
+
+const manifest = "https://inoandi11-lang.github.io/Connect/tonconnect-manifest.json";
+log("Manifest URL: " + manifest);
+
+// === СТВОРЮЄМО UI ===
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: manifest,
+    buttonRootId: "connect"
+});
+
+log("TonConnectUI створено");
+
+// === ВІДСТЕЖЕННЯ ПІДКЛЮЧЕННЯ ===
+tonConnectUI.onStatusChange((wallet) => {
+    log("СТАТУС: " + JSON.stringify(wallet));
+});
+
+// === ОПЛАТА ===
+document.getElementById("pay").onclick = async () => {
+    log("Кнопка Поповнити натиснута");
+
+    const address = "UQA1K3BubP0cSlMxZ-dVG1L-h3sNl90Rha2zdVS4LQLVU271";
+    const memo = "7659832051";
+
+    const tx = {
+        validUntil: Math.floor(Date.now() / 1000) + 300,
+        messages: [
+            {
+                address: address,
+                amount: (1e9).toString(),
+                payload: TON_CONNECT_UI.TonConnectUI.createCommentMessage(memo)
+            }
+        ]
+    };
+
+    log("TX готовий: " + JSON.stringify(tx));
+
+    try {
+        await tonConnectUI.sendTransaction(tx);
+        log("Транзакція відправлена!");
+    } catch (e) {
+        log("ПОМИЛКА ТРАНЗАКЦІЇ: " + e);
+    }
+};
+</script>
 
 </body>
 </html>
