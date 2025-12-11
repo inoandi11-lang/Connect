@@ -2,78 +2,118 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>TON Connect Test</title>
+    <title>TON Connect Debug</title>
 
-    <!-- TON Connect UI -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 30px;
-            background: #f4f4f4;
-        }
+        body { font-family: Arial; padding: 20px; }
         button {
             padding: 12px 20px;
-            border-radius: 8px;
-            border: none;
             background: #4CAF50;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 15px;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        #log {
+            background: #111;
+            color: #0f0;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            font-size: 14px;
+            border-radius: 8px;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 
 <body>
 
-<h2>TON Connect приклад</h2>
+<h2>TON Connect Debug</h2>
 
-<!-- Кнопка підключення -->
 <div id="connect"></div>
 
-<!-- Кнопка оплати -->
 <button id="pay">Поповнити 1 TON</button>
 
+<h3>Логи:</h3>
+<div id="log"></div>
+
 <script>
-    // === Ініціалізація TON CONNECT UI ===
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: "https://inoandi11-lang.github.io/Connect/tonconnect-manifest.json"
-    });
+// === ЛОГЕР ===
+function log(msg) {
+    const el = document.getElementById("log");
+    el.textContent += msg + "\n";
+    el.scrollTop = el.scrollHeight;
+    console.log(msg);
+}
 
-    // Рендеримо кнопку CONNECT
+log("Стартуємо...");
+
+const manifest = "https://inoandi11-lang.github.io/Connect/tonconnect-manifest.json";
+log("Manifest URL: " + manifest);
+
+// === ІНІЦІАЛІЗАЦІЯ TON CONNECT ===
+let tonConnectUI;
+
+try {
+    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: manifest });
+    log("TON Connect UI створений");
+} catch (e) {
+    log("ПОМИЛКА створення TonConnectUI: " + e);
+}
+
+// пробуємо рендерити кнопку
+try {
     tonConnectUI.renderButton(document.getElementById("connect"));
+    log("Кнопка підключення рендериться...");
+} catch (e) {
+    log("ПОМИЛКА рендерингу кнопки: " + e);
+}
+
+// слухаємо зміни статусу
+try {
+    tonConnectUI.onStatusChange((wallet) => {
+        log("СТАТУС ЗМІНИВСЯ: " + JSON.stringify(wallet));
+    });
+} catch (e) {
+    log("ПОМИЛКА onStatusChange: " + e);
+}
 
 
-    // === Кнопка оплати ===
+// === КНОПКА ОПЛАТИ ===
+document.getElementById("pay").onclick = async () => {
+    log("Клік по кнопці 'Поповнити 1 TON'");
 
-    const walletAddress = "UQA1K3BubP0cSlMxZ-dVG1L-h3sNl90Rha2zdVS4LQLVU271";
-    const memoText = "7659832051";
+    const address = "UQA1K3BubP0cSlMxZ-dVG1L-h3sNl90Rha2zdVS4LQLVU271";
+    const memo   = "7659832051";
 
-    document.getElementById("pay").onclick = async () => {
+    const nanotons = (1 * 1e9).toString();
 
-        // Сума 1 TON → нанотони
-        const nanotons = (1 * 1e9).toString();
-
-        const tx = {
-            validUntil: Math.floor(Date.now() / 1000) + 300,
-            messages: [
-                {
-                    address: walletAddress,
-                    amount: nanotons,
-                    payload: TON_CONNECT_UI.TonConnectUI.createCommentMessage(memoText)
-                }
-            ]
-        };
-
-        try {
-            await tonConnectUI.sendTransaction(tx);
-            alert("Транзакція успішно відправлена!");
-        } catch (err) {
-            alert("Ви скасували транзакцію або виникла помилка");
-        }
+    const tx = {
+        validUntil: Math.floor(Date.now() / 1000) + 300,
+        messages: [
+            {
+                address: address,
+                amount: nanotons,
+                payload: TON_CONNECT_UI.TonConnectUI.createCommentMessage(memo)
+            }
+        ]
     };
+
+    log("Готуємо sendTransaction...");
+    log("TX: " + JSON.stringify(tx));
+
+    try {
+        const res = await tonConnectUI.sendTransaction(tx);
+        log("Транзакція виконана: " + JSON.stringify(res));
+    } catch (err) {
+        log("ПОМИЛКА транзакції: " + err);
+    }
+};
+
+log("index.html завантажено");
 </script>
 
 </body>
