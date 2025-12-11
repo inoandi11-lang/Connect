@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>TON Connect Test</title>
+
+    <!-- TON Connect UI -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
+    <style>
+        body { 
+            font-family: Arial; 
+            padding: 30px;
+            background: #f4f4f4;
+        }
+        button {
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: none;
+            background: #4CAF50;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>TON Connect приклад</h2>
+
+<!-- Кнопка підключення -->
+<div id="connect"></div>
+
+<br><br>
+
+<!-- Кнопка на оплату -->
+<button id="pay">Поповнити 1 TON</button>
+
+<script>
+    // Ініціалізація TON Connect
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: "/tonconnect-manifest.json"
+    });
+
+    // Рендеримо кнопку підключення
+    tonConnectUI.renderButton(document.getElementById("connect"));
+
+    // Адреса отримувача
+    const walletAddress = "UQA1K3BubP0cSlMxZ-dVG1L-h3sNl90Rha2zdVS4LQLVU271";
+
+    // MEMO (comment)
+    const memoText = "7659832051";
+
+    // Нажаття кнопки Оплатити
+    document.getElementById("pay").onclick = async () => {
+
+        // Сума у TON → нано-тон (TON * 1e9)
+        const amountTON = 1;
+        const nanotons = (amountTON * 1e9).toString();
+
+        const tx = {
+            validUntil: Math.floor(Date.now() / 1000) + 300, // 5 хвилин
+            messages: [
+                {
+                    address: walletAddress,
+                    amount: nanotons,
+                    payload: TON_CONNECT_UI.TonConnectUI.createCommentMessage(memoText)
+                }
+            ]
+        };
+
+        try {
+            await tonConnectUI.sendTransaction(tx);
+            alert("Транзакція відправлена!");
+        } catch (err) {
+            alert("Відмінили транзакцію або сталася помилка");
+        }
+    };
+</script>
+
+</body>
+</html>
